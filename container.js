@@ -16,4 +16,8 @@ container.register({
     startServer: awilix.asFunction(require('./src/api/server'))
 })
 
+container.register({
+    startMonitoring: awilix.asFunction(require('./src/blockchain/monitor'))
+})
+
 module.exports = container;
