@@ -12,4 +12,8 @@ container.register({
     }).singleton()
 })
 
+container.register({
+    startServer: awilix.asFunction(require('./src/api/server'))
+})
+
 module.exports = container;
