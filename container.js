@@ -46,6 +46,10 @@ container.loadModules(['src/db/models/*.js'], {
 })
 
 container.register({
+    configManagerService: awilix.asFunction(require('./src/utils/configManager'))
+})
+
+container.register({
     startServer: awilix.asFunction(require('./src/api/server'))
 })
 

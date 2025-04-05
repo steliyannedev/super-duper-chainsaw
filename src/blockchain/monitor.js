@@ -1,10 +1,11 @@
 const { ethers } = require('ethers')
 
 
-module.exports = ({logger}) => {
-    // TODO: transaction service would probably be imported as param
+module.exports = ({logger, configManagerService}) => {
     const blockchainLogger = logger('Blockchain')
+
     let provider;
+    let activeConfiguration = []
 
     function initProvider() {
         try {
@@ -25,6 +26,8 @@ module.exports = ({logger}) => {
             if (!provider) {
                 initProvider();
             }
+            activeConfiguration = await configManagerService.loadActiveConfiguration()
+            
             provider.on('block', async (blockNumber) =>  {
                 await processBlock(blockNumber);
             })
@@ -35,16 +38,28 @@ module.exports = ({logger}) => {
         }
     }
 
+    function matchingTransaction(tx, config) {
+        const rules = config.rules;
+        
+        if (rules.minValue && BigInt(tx.value) > BigInt(rules.minValue)) {
+            return true
+        }
+
+        return false
+    }
+
     async function processBlock(blockNumber){
         try {
             const block = await provider.getBlock(blockNumber, true)
             blockchainLogger.info(
                 `Processing block ${blockNumber} with ${Array.from(block.transactions).length} transactions`
             )
-            for (const tx of block.transactions){
-                // TODO: check current config and apply rules to each tx
-                // TODO: store tx that match rules in DB
-                continue
+            for (const tx of block.prefetchedTransactions){
+                for (const config of activeConfiguration){
+                    if (matchingTransaction(tx, config)){
+                        console.log('this passes: ', tx)
+                    }
+                }
             }
         }catch (err){
             blockchainLogger.error(`Failed to process block ${blockNumber} with error: ${err}`)

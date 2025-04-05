@@ -14,8 +14,8 @@ async function startApp(){
         const { startServer } = container.resolve('startServer');
         const server = await startServer()
 
-        // const { startMonitoring } = container.resolve('startMonitoring')
-        // await startMonitoring()
+        const { startMonitoring } = container.resolve('startMonitoring')
+        await startMonitoring()
     } catch (err) {
         logger.error(`Failed to start application: ${err}`)
     }

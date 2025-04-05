@@ -2,7 +2,7 @@ const http = require('http')
 const url = require('url')
 
 
-module.exports = ({logger}) => {
+module.exports = ({logger, configManagerService}) => {
     const serverLogger = logger('Server');
 
     async function handleRequest(req, res) {
@@ -20,9 +20,10 @@ module.exports = ({logger}) => {
                 // TODO: get all configs
                 sendJson(res, {}, 200)
             }else if (method === 'POST'){
-                // TODO: parse body 
-                // TODO: create config
-                sendJson(res, {}, 200)
+                const configData = await parseBody(req)
+                const config = await configManagerService.createConfiguration(configData)
+                
+                sendJson(res, config, 200)
             }
         }else if (path.match(/^\api\/configurations\/[^/]+$/)) {
             const id = path.split('/').pop()
@@ -43,6 +44,16 @@ module.exports = ({logger}) => {
                 sendJson(res, {error: "Method not allowed"}, 400)
             }
         }
+    }
+
+    async function parseBody(req) {
+        const body = await new Promise((resolve) => {
+            let data = ''
+            req.on('data', chunk => data += chunk)
+            req.on('end', () => resolve(data))
+        })
+
+        return body ? JSON.parse(body) : {};
     }
     
     function sendJson(res, data, statusCode) {
