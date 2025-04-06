@@ -1,4 +1,6 @@
-module.exports = ({logger, configuration}) => {
+const EventEmitter = require('node:events');
+
+module.exports = ({logger, configuration, eventEmitter}) => {
     const configLogger = logger('ConfigManager')
 
     async function getAllConfigurations() {
@@ -29,6 +31,7 @@ module.exports = ({logger, configuration}) => {
                 }
             )
             configLogger.info('Updated config', {configId: id})
+            eventEmitter.emit('configUpdated', updatedConfig[1]);
 
             return updatedConfig;
         }catch (err) {
@@ -46,6 +49,7 @@ module.exports = ({logger, configuration}) => {
                 return null;
             }
             await configuration.destroy({where: {id}})
+            eventEmitter.emit('configDeleted', id);
 
             return true;
         }catch (err) {
@@ -73,6 +77,7 @@ module.exports = ({logger, configuration}) => {
         try {
             const config = await configuration.create(configData)
             configLogger.info('Created new configuration', {id: config.id})
+            eventEmitter.emit('configCreated', config);
 
             return config
         }catch (err){
@@ -101,6 +106,7 @@ module.exports = ({logger, configuration}) => {
         getAllConfigurations,
         fetchConfigById,
         updatedConfig,
-        deleteConfig
+        deleteConfig,
+        eventEmitter
     }
 }

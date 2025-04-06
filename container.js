@@ -1,3 +1,5 @@
+const EventEmitter = require('node:events');
+
 const awilix = require('awilix')
 
 const { Logger } = require('./src/utils/logger');
@@ -5,6 +7,10 @@ const { Logger } = require('./src/utils/logger');
 
 const container = awilix.createContainer({
     injectionMode: awilix.InjectionMode.PROXY
+})
+
+container.register({
+    eventEmitter: awilix.asValue(new EventEmitter())
 })
 
 container.register({

@@ -11,11 +11,12 @@ module.exports = ({sequelize}) => {
             },
             configurationId: {
                 type: DataTypes.UUID,
-                allowNull: false,
+                allowNull: true,
                 references: {
                     model: 'Configurations',
                     key: 'id'
-                }
+                },
+                onDelete: 'SET NULL'
             },
             transactionHash: {
                 type: DataTypes.STRING,

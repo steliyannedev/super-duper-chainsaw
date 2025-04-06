@@ -1,7 +1,7 @@
 const { ethers } = require('ethers')
 
 
-module.exports = ({logger, configManagerService, transaction}) => {
+module.exports = ({logger, configManagerService, transaction, eventEmitter}) => {
     const blockchainLogger = logger('Blockchain')
 
     let provider;
@@ -27,10 +27,13 @@ module.exports = ({logger, configManagerService, transaction}) => {
                 initProvider();
             }
             activeConfiguration = await configManagerService.loadActiveConfiguration()
+
+            setupConfigListeners();
             
             provider.on('block', async (blockNumber) =>  {
                 await processBlock(blockNumber);
             })
+            
             blockchainLogger.info('Monitoring on blockchain started')
         } catch (err){
             blockchainLogger.error(`Failed to start monitoring: ${err}`)
@@ -66,8 +69,6 @@ module.exports = ({logger, configManagerService, transaction}) => {
 
     async function storeTransaction(tx, configId, timestamp) {
         try {
-            // TODO: check for another way to fetch gasUsed, for looser rules with many matched tx
-            //  we might get rate limited
             const txReceipt = await provider.getTransactionReceipt(tx.hash)
             await transaction.create({
                 configurationId: configId,
@@ -103,6 +104,30 @@ module.exports = ({logger, configManagerService, transaction}) => {
         }catch (err){
             blockchainLogger.error(`Failed to process block ${blockNumber} with error: ${err}`)
         }
+    }
+
+    async function refreshActiveConfigurations() {
+        activeConfiguration = await configManagerService.loadActiveConfiguration();
+        blockchainLogger.info(`Refreshed active configurations, now tracking ${activeConfiguration.length} configurations`);
+    }
+
+    function setupConfigListeners() {
+        eventEmitter.on('configCreated', async (config) => {
+            blockchainLogger.info('Event received: configCreated', { configId: config.id });
+            await refreshActiveConfigurations();
+        });
+        
+        eventEmitter.on('configUpdated', async (config) => {
+            blockchainLogger.info('Event received: configUpdated', { configId: config.id });
+            await refreshActiveConfigurations();
+        });
+        
+        eventEmitter.on('configDeleted', async (configId) => {
+            blockchainLogger.info('Event received: configDeleted', { configId });
+            await refreshActiveConfigurations();
+        });
+        
+        blockchainLogger.info('Config event listeners setup complete');
     }
 
     return { startMonitoring }
