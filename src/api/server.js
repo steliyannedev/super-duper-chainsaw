@@ -1,12 +1,13 @@
 const http = require('http')
 const url = require('url')
 
+require('dotenv').config()
+
 
 module.exports = ({logger, configManagerService}) => {
     const serverLogger = logger('Server');
 
     async function handleRequest(req, res) {
-        // TODO: some basic logging
         const parsedUrl = url.parse(req.url, true)
         const path = parsedUrl.pathname.replace(/^\/+|\/+$/g, '')
         const method = req.method.toUpperCase()
@@ -17,8 +18,9 @@ module.exports = ({logger, configManagerService}) => {
     
         if (path === 'api/configurations') {
             if (method === 'GET') {
-                // TODO: get all configs
-                sendJson(res, {}, 200)
+                const configs = await configManagerService.getAllConfigurations()
+
+                sendJson(res, configs, 200)
             }else if (method === 'POST'){
                 const configData = await parseBody(req)
                 const config = await configManagerService.createConfiguration(configData)
@@ -29,17 +31,32 @@ module.exports = ({logger, configManagerService}) => {
             const id = path.split('/').pop()
     
             if (method === 'GET') {
-                // TODO: get specific config by id
-                // TODO: check if config exists and handle appropriatly
-                sendJson(res, {}, 200)
-            }else if (method === 'PUT'){
-                // TODO: parse data from body
-                // TODO: update config
-                sendJson(res, {}, 200)
+                const config = await configManagerService.fetchConfigById(id)
+
+                if (config) {
+                    sendJson(res, config, 200)
+                } else {
+                    sendJson(res, { error: `Config with id: ${id} does not exist` }, 404)
+                }
+            }else if (method === 'PATCH'){
+                const configData = await parseBody(req)
+                const updatedConfig = await configManagerService.updatedConfig(id, configData)
+
+                if (updatedConfig) {
+                    sendJson(res, updatedConfig[1], 200)
+                }else {
+                    sendJson(res, {error: `Config with id: ${id} does not exist`}, 404)
+                }
+
             }else if (method === 'DELETE') {
-                // TODO: delete config
+                const result = await configManagerService.deleteConfig(id)
+
+                if (result) {
+                    sendJson(res, {msg: `Successfully deleted config with id: ${id}`}, 200)
+                }else {
+                    sendJson(res, {error: `Config with id: ${id} does not exist`}, 404)
+                }
     
-                sendJson(res, {}, 200)
             } else {
                 sendJson(res, {error: "Method not allowed"}, 400)
             }
@@ -72,9 +89,9 @@ module.exports = ({logger, configManagerService}) => {
                         serverLogger.error('Error handling request: ', err)
                     }
                 })
-                server.listen(3000, () => {
+                server.listen(process.env.PORT, () => {
                     // TODO: change hardcoded port with dynamic value
-                    serverLogger.info('Server running on port 3000')
+                    serverLogger.info(`Server running on port ${process.env.PORT}`)
                     resolve(server)
                 })
                 server.on('error', (err) => {
