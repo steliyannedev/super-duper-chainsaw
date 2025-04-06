@@ -40,12 +40,28 @@ module.exports = ({logger, configManagerService, transaction}) => {
 
     function matchingTransaction(tx, config) {
         const rules = config.rules;
-        
-        if (rules.minValue && BigInt(tx.value) > BigInt(rules.minValue)) {
-            return true
+        // handles case for contract creation or where tx.to == null
+        if (rules.toAddress && !tx.to) {
+            return false
         }
 
-        return false
+        if (rules.toAddress && tx.to && rules.toAddress.toLowerCase() !== tx.to.toLowerCase()) {
+            return false
+        }
+
+        if (rules.fromAddress && tx.from && rules.fromAddress.toLowerCase() !== tx.from.toLowerCase()) {
+            return false
+        }
+        
+        if (rules.minValue && BigInt(tx.value) < BigInt(rules.minValue)) {
+            return false
+        }
+
+        if (rules.maxValue && BigInt(tx.value) > BigInt(rules.maxValue)) {
+            return false
+        }
+
+        return true
     }
 
     async function storeTransaction(tx, configId, timestamp) {

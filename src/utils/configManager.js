@@ -19,7 +19,9 @@ module.exports = ({logger, configuration}) => {
                 return null
             }
             const updatedConfig = await configuration.update(
-                {...configData},
+                {...configData,
+                    rules: {...config.rules, ...configData.rules}
+                },
                 {
                     where: { id },
                     returning: true,
