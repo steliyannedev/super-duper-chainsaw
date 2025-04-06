@@ -9,7 +9,14 @@ module.exports = ({sequelize}) => {
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true
             },
-            // TODO: ConfigId
+            configurationId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                references: {
+                    model: 'Configurations',
+                    key: 'id'
+                }
+            },
             transactionHash: {
                 type: DataTypes.STRING,
                 allowNull: false
@@ -27,7 +34,7 @@ module.exports = ({sequelize}) => {
                 allowNull: false
             },
             value: {
-                type: DataTypes.BIGINT,
+                type: DataTypes.STRING,
                 allowNull: false
             },
             gasUsed: {
@@ -39,11 +46,7 @@ module.exports = ({sequelize}) => {
                 allowNull: true
             },
             timestamp: {
-                type: DataTypes.TIME,
-                allowNull: false
-            },
-            rawData: {
-                type: DataTypes.JSON,
+                type: DataTypes.DATE,
                 allowNull: false
             }
         }

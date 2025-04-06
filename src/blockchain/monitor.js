@@ -1,7 +1,7 @@
 const { ethers } = require('ethers')
 
 
-module.exports = ({logger, configManagerService}) => {
+module.exports = ({logger, configManagerService, transaction}) => {
     const blockchainLogger = logger('Blockchain')
 
     let provider;
@@ -48,6 +48,29 @@ module.exports = ({logger, configManagerService}) => {
         return false
     }
 
+    async function storeTransaction(tx, configId, timestamp) {
+        try {
+            // TODO: check for another way to fetch gasUsed, for looser rules with many matched tx
+            //  we might get rate limited
+            const txReceipt = await provider.getTransactionReceipt(tx.hash)
+            await transaction.create({
+                configurationId: configId,
+                transactionHash: tx.hash,
+                blockNumber: tx.blockNumber,
+                fromAddress: tx.from,
+                toAddress: tx.to,
+                value: tx.value.toString(),
+                gasUsed: txReceipt ? txReceipt.gasUsed.toString() : '0',
+                data: tx.data,
+                timestamp: new Date(timestamp * 1000)
+            })
+            blockchainLogger.info('Matching transaction stored', {hash: tx.hash, configId})
+        }catch (err){
+            blockchainLogger.error(`Error saving matching transaction: ${err}`)
+            throw err;
+        }
+    }
+
     async function processBlock(blockNumber){
         try {
             const block = await provider.getBlock(blockNumber, true)
@@ -57,7 +80,7 @@ module.exports = ({logger, configManagerService}) => {
             for (const tx of block.prefetchedTransactions){
                 for (const config of activeConfiguration){
                     if (matchingTransaction(tx, config)){
-                        console.log('this passes: ', tx)
+                        await storeTransaction(tx, config.id, block.timestamp)
                     }
                 }
             }
