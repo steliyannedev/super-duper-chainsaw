@@ -67,7 +67,7 @@ module.exports = ({logger, configuration, eventEmitter}) => {
 
             return config
         } catch (err) {
-            configLogger.error(`Error trying to fetch config by id: ${id}`)
+            configLogger.error(`Error trying to fetch config: ${err}`, {configId: id})
 
             throw err
         }

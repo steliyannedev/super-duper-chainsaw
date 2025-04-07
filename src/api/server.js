@@ -86,7 +86,7 @@ module.exports = ({logger, configManagerService}) => {
                     try {
                         await handleRequest(req, res)
                     } catch (err){
-                        serverLogger.error('Error handling request: ', err)
+                        serverLogger.error(`Error handling request: ${err}`)
                     }
                 })
                 server.listen(process.env.PORT, () => {
@@ -95,11 +95,11 @@ module.exports = ({logger, configManagerService}) => {
                     resolve(server)
                 })
                 server.on('error', (err) => {
-                    serverLogger.error('Server error: ', err)
+                    serverLogger.error(`Server error: ${err}`)
                     reject(err)
                 })
             }catch(err){
-                serverLogger.error('Error starting server: ', err)
+                serverLogger.error(`Error starting server: ${err}`)
             }
         })
     }

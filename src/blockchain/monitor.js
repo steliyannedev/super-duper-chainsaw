@@ -16,7 +16,7 @@ module.exports = ({logger, configManagerService, transaction, eventEmitter}) => 
 
             blockchainLogger.info(`Provider initialized on ${process.env.NETWORK}`)
         }catch (err){
-            blockchainLogger.error('Failed to initialize provider: ', err)
+            blockchainLogger.error(`Failed to initialize provider: ${err}`)
             throw err;
         }
     }
