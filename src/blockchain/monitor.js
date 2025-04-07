@@ -43,8 +43,8 @@ module.exports = ({logger, configManagerService, transaction, eventEmitter}) => 
 
     function matchingTransaction(tx, config) {
         const rules = config.rules;
-        // handles case for contract creation or where tx.to == null
-        if (rules.toAddress && !tx.to) {
+        // to handles case for contract creation or where tx.to == null
+        if (rules.toAddress && !tx.to && rules.toAddress !== '0x') {
             return false
         }
 
