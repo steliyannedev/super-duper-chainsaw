@@ -1,5 +1,7 @@
 # Blockchain Transaction Monitoring System
 
+**Note:** Updates done post submission of task: Added tests
+
 A Node.js application that monitors Ethereum blockchain transactions in real-time and stores matching transactions based on configurable rules.
 
 ## Technologies Used

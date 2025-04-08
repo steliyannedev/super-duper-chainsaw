@@ -1,5 +1,3 @@
-const EventEmitter = require('node:events');
-
 module.exports = ({logger, configuration, eventEmitter}) => {
     const configLogger = logger('ConfigManager')
 
@@ -16,7 +14,7 @@ module.exports = ({logger, configuration, eventEmitter}) => {
 
     async function updatedConfig(id, configData) {
         try {
-            const config = await configuration.findByPk(id)
+            const config = await fetchConfigById(id)
             if (!config){
                 return null
             }
@@ -44,7 +42,7 @@ module.exports = ({logger, configuration, eventEmitter}) => {
 
     async function deleteConfig(id) {
         try {
-            const config = await configuration.findByPk(id)
+            const config = await fetchConfigById(id)
             if (!config){
                 return null;
             }
@@ -106,7 +104,6 @@ module.exports = ({logger, configuration, eventEmitter}) => {
         getAllConfigurations,
         fetchConfigById,
         updatedConfig,
-        deleteConfig,
-        eventEmitter
+        deleteConfig
     }
 }

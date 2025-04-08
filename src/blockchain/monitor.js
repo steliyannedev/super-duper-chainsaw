@@ -43,7 +43,7 @@ module.exports = ({logger, configManagerService, transaction, eventEmitter}) => 
 
     function matchingTransaction(tx, config) {
         const rules = config.rules;
-        // to handles case for contract creation or where tx.to == null
+        // to handles case for contract creation aka. where tx.to == null
         if (rules.toAddress && !tx.to && rules.toAddress !== '0x') {
             return false
         }
@@ -130,5 +130,10 @@ module.exports = ({logger, configManagerService, transaction, eventEmitter}) => 
         blockchainLogger.info('Config event listeners setup complete');
     }
 
-    return { startMonitoring }
+    return { 
+        startMonitoring, 
+        matchingTransaction, 
+        getActiveConfiguration: () => activeConfiguration, 
+        setupConfigListeners  
+    }
 }
